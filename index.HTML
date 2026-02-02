@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DTC Smart Scheduler | Route Configuration</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <div class="md:hidden flex items-center justify-between bg-dtc-green text-white p-4 shadow-md">
+        <h1 class="font-bold text-lg"><i class="fas fa-bus"></i> DTC Manager</h1>
+        <button onclick="toggleSidebar()" class="text-white focus:outline-none">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+    </div>
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside id="sidebar" class="bg-white w-64 shadow-xl hidden md:flex flex-col h-full transform transition-transform duration-300 z-50 fixed md:relative">
+            <div class="p-6 bg-dtc-green text-white">
+                <h2 class="text-2xl font-bold"><i class="fas fa-bus-alt mr-2"></i>DTC Admin</h2>
+                <p class="text-xs opacity-75 mt-1">Delhi Transport Corp.</p>
+            </div>
+            <nav class="flex-1 p-4 space-y-2">
+                <a href="#" onclick="showSection('dashboard')" class="nav-item block p-3 rounded hover:bg-green-50 text-dtc-green font-semibold bg-green-50">
+                    <i class="fas fa-chart-line mr-3"></i> Dashboard
+                </a>
+                <a href="#" onclick="showSection('routes')" class="nav-item block p-3 rounded hover:bg-green-50 text-gray-600">
+                    <i class="fas fa-map-signs mr-3"></i> Route Config
+                </a>
+                <a href="#" onclick="showSection('schedule')" class="nav-item block p-3 rounded hover:bg-green-50 text-gray-600">
+                    <i class="fas fa-calendar-alt mr-3"></i> Auto-Schedule
+                </a>
+            </nav>
+            <div class="p-4 border-t text-xs text-gray-400">
+                System v2.4 (Beta)
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-4 md:p-8 relative w-full" onclick="closeSidebarOnMobile()">
+            
+            <div id="dashboard" class="section fade-in">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">System Overview</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow border-l-4 border-green-600">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-500">Active Fleet</p>
+                                <p class="text-3xl font-bold text-gray-800" id="total-buses">0</p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-full text-green-600">
+                                <i class="fas fa-bus"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-600">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-500">Active Routes</p>
+                                <p class="text-3xl font-bold text-gray-800" id="total-routes">0</p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-full text-blue-600">
+                                <i class="fas fa-route"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow border-l-4 border-yellow-500">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-500">Pending Schedules</p>
+                                <p class="text-3xl font-bold text-gray-800" id="pending-tasks">4</p>
+                            </div>
+                            <div class="bg-yellow-100 p-3 rounded-full text-yellow-600">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="px-6 py-4 border-b">
+                        <h3 class="font-semibold text-gray-700">Live Bus Status (New Delhi Region)</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-sm uppercase">
+                                    <th class="p-4">Bus ID</th>
+                                    <th class="p-4">Current Route</th>
+                                    <th class="p-4">Driver</th>
+                                    <th class="p-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="live-status-body" class="text-sm">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="routes" class="section hidden fade-in">
+                <h2 class="text-2xl font-bold mb-6 text-gray-700">Route Configuration</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4 text-dtc-green">Add New Route</h3>
+                        <form id="route-form" onsubmit="handleAddRoute(event)">
+                            <div class="mb-4">
+                                <label class="block text-sm text-gray-600 mb-1">Route Number</label>
+                                <input type="text" id="route-id" placeholder="e.g., 534, 419" class="w-full border p-2 rounded focus:outline-none focus:border-green-600" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm text-gray-600 mb-1">Source (Start)</label>
+                                <input type="text" id="route-source" placeholder="e.g., Anand Vihar" class="w-full border p-2 rounded" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm text-gray-600 mb-1">Destination (End)</label>
+                                <input type="text" id="route-dest" placeholder="e.g., Nehru Place" class="w-full border p-2 rounded" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-sm text-gray-600 mb-1">Est. Distance (km)</label>
+                                <input type="number" id="route-dist" placeholder="15" class="w-full border p-2 rounded" required>
+                            </div>
+                            <button type="submit" class="w-full bg-dtc-green text-white py-2 rounded hover:bg-green-700 transition">
+                                <i class="fas fa-plus mr-2"></i> Create Route
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden">
+                        <div class="px-6 py-4 border-b flex justify-between items-center">
+                            <h3 class="font-semibold text-gray-700">Existing Routes</h3>
+                            <span class="text-xs bg-gray-200 px-2 py-1 rounded">Real-time DB</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="bg-gray-100 text-gray-600 text-sm">
+                                        <th class="p-4">Route #</th>
+                                        <th class="p-4">Path</th>
+                                        <th class="p-4">Distance</th>
+                                        <th class="p-4">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="route-list-body" class="text-sm">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="schedule" class="section hidden fade-in">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-700">Automatic Scheduler</h2>
+                        <p class="text-gray-500 text-sm">Algorithm assigns buses based on route load.</p>
+                    </div>
+                    <button onclick="runAutoScheduler()" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700 transition">
+                        <i class="fas fa-magic mr-2"></i> Run Auto-Assign
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-gray-800 text-white text-sm">
+                                    <th class="p-4">Time Slot</th>
+                                    <th class="p-4">Bus Number</th>
+                                    <th class="p-4">Assigned Route</th>
+                                    <th class="p-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-body" class="text-sm">
+                                <tr class="border-b"><td class="p-4 text-center text-gray-500" colspan="4">No schedule generated. Click "Run Auto-Assign" to start.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+/* Custom DTC Color Variables */
+:root {
+    --dtc-green: #00796B;
+    --dtc-red: #C62828;
+}
+
+/* Utility classes to apply the custom variables */
+.bg-dtc-green {
+    background-color: var(--dtc-green);
+}
+
+.text-dtc-green {
+    color: var(--dtc-green);
+}
+
+/* Animations for smooth section transitions */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
