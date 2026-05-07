@@ -152,8 +152,9 @@ function initDriverPanel(){
 
     if(!selectedDriver) return;
 
+    const driverId = selectedDriver.trim().split(/\s+/)[0].toUpperCase();
     const exists = drivers.find(
-      d => d.id === selectedDriver
+      d => d.id.toUpperCase() === driverId
     );
 
     if(!exists){
@@ -162,7 +163,7 @@ function initDriverPanel(){
     }
 
     db.update('buses', busSelect.value, {
-      driverId: selectedDriver
+      driverId: exists.id
     });
 
     updateDriverDisplay();
@@ -1063,7 +1064,15 @@ function initMobileMenu() {
   const ham = document.querySelector('.hamburger');
   const links = document.querySelector('.nav-links');
   ham?.addEventListener('click', () => {
-    links?.classList.toggle('hidden');
+    const isOpen = links?.classList.toggle('open');
+    ham.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+
+  links?.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      links.classList.remove('open');
+      ham?.setAttribute('aria-expanded', 'false');
+    });
   });
 }
 
