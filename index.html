@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DTC — Delhi Transport Corporation | Route & Schedule Management</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23FF6B00'/><text y='24' x='4' font-size='20' font-family='monospace' font-weight='bold' fill='white'>DT</text></svg>">
+</head>
+<body>
+
+<!-- ── Admin Bar ─────────────────────────────────────────────── -->
+<div id="adminBar" class="admin-bar">
+  <span>🔓 Admin Mode Active — You have full edit access</span>
+  <button class="btn-logout" onclick="logoutAdmin()">Log Out</button>
+</div>
+
+<!-- ── Navbar ───────────────────────────────────────────────── -->
+<nav class="navbar">
+  <div class="container">
+    <a href="#hero" class="nav-brand">
+      <div class="nav-logo">DTC</div>
+      <div class="nav-title">
+        <strong>Delhi Transport Corporation</strong>
+        <span>Government of NCT of Delhi</span>
+      </div>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#hero" class="active">🏠 Home</a></li>
+      <li><a href="#departures">🚌 Departures</a></li>
+      <li><a href="#routes">🗺 Routes</a></li>
+      <li><a href="#schedule">🕐 Schedule</a></li>
+      <li><a href="#fleet">🚍 Fleet</a></li>
+      <li><a href="#analytics">📊 Analytics</a></li>
+      <li><a href="#alerts-section">🔔 Alerts</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="btn-lang">हिंदी</button>
+      <button class="btn-admin">🔐 Admin Login</button>
+      <button class="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Ticker ───────────────────────────────────────────────── -->
+<div class="ticker-wrap" style="margin-top:64px">
+  <div class="ticker-inner">
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>423</strong>: On Time — Kashmere Gate ISBT → AIIMS</span>
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>544</strong>: 8 min delay — Anand Vihar → Dwarka Sector 21</span>
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>76</strong>: On Time — Rohini Sector 3 → Nehru Place</span>
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>881</strong>: On Time — Delhi Gate → Saket</span>
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>101</strong>: 5 min delay — Lajpat Nagar → Connaught Place</span>
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>330</strong>: On Time — Hauz Khas → ISBT Sarai Kale Khan</span>
+    <!-- duplicate for seamless loop -->
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>423</strong>: On Time — Kashmere Gate ISBT → AIIMS</span>
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>544</strong>: 8 min delay — Anand Vihar → Dwarka Sector 21</span>
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>76</strong>: On Time — Rohini Sector 3 → Nehru Place</span>
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>881</strong>: On Time — Delhi Gate → Saket</span>
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>101</strong>: 5 min delay — Lajpat Nagar → Connaught Place</span>
+    <span class="ticker-item"><span class="ticker-sep">◆</span> Route <strong>330</strong>: On Time — Hauz Khas → ISBT Sarai Kale Khan</span>
+  </div>
+</div>
+
+<!-- ── Hero ─────────────────────────────────────────────────── -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div class="container hero-content" style="width:100%">
+    <div class="hero-inner">
+      <!-- Left -->
+      <div>
+        <div class="live-badge" style="margin-bottom:20px">
+          <span class="live-dot"></span>
+          Live System — 1,843 Buses Active
+        </div>
+        <div class="hero-label">🚌 Smart Route &amp; Schedule Control</div>
+        <h1 class="hero-title">
+          Delhi Transport<br><span>Corporation</span>
+        </h1>
+        <p class="hero-subtitle"> </p>
+        <p class="hero-desc">Real-time bus tracking, intelligent scheduling, and comprehensive route management for Delhi's public transport network.</p>
+        <div class="hero-btns">
+          <a href="#departures" class="btn-primary">🔍 Find Bus</a>
+          <a href="#routes"     class="btn-secondary">🗺 Route Info</a>
+          <a href="#map-section" class="btn-secondary">📡 Live Track</a>
+        </div>
+      </div>
+
+      <!-- Right: Search Card -->
+      <div class="hero-search-card">
+        <div class="search-card-title">🔍 Find Your <span>Bus</span></div>
+        <div class="search-grid">
+          <div class="form-group">
+            <label class="form-label">From Stop</label>
+            <input id="searchFrom" class="form-input" placeholder="e.g. Kashmere Gate" list="stopList">
+          </div>
+          <div class="form-group">
+            <label class="form-label">To Stop</label>
+            <input id="searchTo" class="form-input" placeholder="e.g. AIIMS" list="stopList">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" class="form-input" id="searchDate">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bus Type</label>
+            <select id="searchType" class="form-select">
+              <option>All Types</option>
+              <option>Low Floor AC</option>
+              <option>Standard CNG</option>
+              <option>Electric EV</option>
+              <option>Express</option>
+            </select>
+          </div>
+          <div class="form-group search-full">
+            <button id="btnSearch" class="btn-search">🔍 Search Buses</button>
+          </div>
+        </div>
+        <div id="searchResults"></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-number" id="count-buses">0</span>
+        <div class="stat-label">Total Fleet Buses</div>
+        <div class="stat-change">↑ 340 added this year</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" id="count-routes">0</span>
+        <div class="stat-label">Active Routes</div>
+        <div class="stat-change">↑ 18 new routes</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" id="count-passengers">0</span>
+        <div class="stat-label">Daily Passengers</div>
+        <div class="stat-change">↑ 12% this month</div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">87<span style="font-size:18px;color:var(--text2)">%</span></span>
+        <div class="stat-label">On-Time Rate</div>
+        <div class="stat-change">↑ 2.1% vs yesterday</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Live Map ──────────────────────────────────────────────── -->
+<section id="map-section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="section-tag">Live Tracking</div>
+        <h2 class="section-title">🗺 Delhi Live Bus Map</h2>
+        <p class="section-sub">Real-time positions of active DTC fleet across the city</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span id="liveTime" style="font-family:var(--font-mono);font-size:18px;color:var(--primary);font-weight:600">--:--:--</span>
+        <div class="live-badge"><span class="live-dot"></span>Live</div>
+      </div>
+    </div>
+
+    <div class="map-container">
+      <div class="map-header">
+        <div class="map-title">🗺 NCT Delhi — Bus Network <span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:8px">Showing active routes</span></div>
+        <div class="map-controls">
+          <button class="map-btn active" data-type="all">All</button>
+          <button class="map-btn" data-type="ring">🔄 Ring</button>
+          <button class="map-btn" data-type="ns">↕ N-S</button>
+          <button class="map-btn" data-type="express">🚀 Express</button>
+        </div>
+      </div>
+
+      <div class="map-body">
+        <div id="dtcMap" style="position:relative"></div>
+        <div class="map-sidebar">
+          <div class="map-sidebar-title">Live Route Status</div>
+          <div id="liveRouteList">
+            <div class="live-route-item">
+              <span class="route-dot dot-green"></span>
+              <div>
+                <div class="route-item-no">Route 423</div>
+                <div class="route-item-info">Kashmere Gate → AIIMS · On Time</div>
+              </div>
+            </div>
+            <div class="live-route-item">
+              <span class="route-dot dot-yellow"></span>
+              <div>
+                <div class="route-item-no">Route 544</div>
+                <div class="route-item-info">Anand Vihar → Dwarka · +8 min</div>
+              </div>
+            </div>
+            <div class="live-route-item">
+              <span class="route-dot dot-green"></span>
+              <div>
+                <div class="route-item-no">Route 76</div>
+                <div class="route-item-info">Rohini → Nehru Place · On Time</div>
+              </div>
+            </div>
+            <div class="live-route-item">
+              <span class="route-dot dot-green"></span>
+              <div>
+                <div class="route-item-no">Route 881</div>
+                <div class="route-item-info">Delhi Gate → Saket · On Time</div>
+              </div>
+            </div>
+            <div class="live-route-item">
+              <span class="route-dot dot-yellow"></span>
+              <div>
+                <div class="route-item-no">Route 101</div>
+                <div class="route-item-info">Lajpat Nagar → CP · +5 min</div>
+              </div>
+            </div>
+            <div class="live-route-item">
+              <span class="route-dot dot-green"></span>
+              <div>
+                <div class="route-item-no">Route 330</div>
+                <div class="route-item-info">Hauz Khas → SKK ISBT · On Time</div>
+              </div>
+            </div>
+            <div class="live-route-item">
+              <span class="route-dot dot-red"></span>
+              <div>
+                <div class="route-item-no">Route 789</div>
+                <div class="route-item-info">Dwarka → Noida · Suspended</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map ticker -->
+      <div class="map-ticker">
+        <div class="map-ticker-inner">
+          <span class="map-ticker-item">Route <b>423</b> On Time</span>
+          <span class="map-ticker-item delayed">Route <b>544</b> +8 min</span>
+          <span class="map-ticker-item">Route <b>76</b> On Time</span>
+          <span class="map-ticker-item">Route <b>881</b> On Time</span>
+          <span class="map-ticker-item delayed">Route <b>101</b> +5 min</span>
+          <span class="map-ticker-item">Route <b>330</b> On Time</span>
+          <span class="map-ticker-item">Route <b>502</b> On Time</span>
+          <span class="map-ticker-item">Route <b>667</b> On Time</span>
+          <span class="map-ticker-item">Route <b>423</b> On Time</span>
+          <span class="map-ticker-item delayed">Route <b>544</b> +8 min</span>
+          <span class="map-ticker-item">Route <b>76</b> On Time</span>
+          <span class="map-ticker-item">Route <b>881</b> On Time</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Departures ─────────────────────────────────────────────── -->
+<section id="departures">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="section-tag">Live Board</div>
+        <h2 class="section-title">Real-Time Departures</h2>
+        <p class="section-sub">Live status of buses departing from major terminals across Delhi.</p>
+      </div>
+      <div class="live-badge"><span class="live-dot"></span>Auto-refreshing</div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="All Terminals">All Terminals</button>
+      <button class="tab-btn" data-tab="Kashmere Gate ISBT">Kashmere Gate</button>
+      <button class="tab-btn" data-tab="Anand Vihar ISBT">Anand Vihar</button>
+      <button class="tab-btn" data-tab="Sarai Kale Khan">Sarai Kale Khan</button>
+    </div>
+
+    <div class="dep-table-wrap">
+      <table class="dep-table">
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Destination</th>
+            <th>Platform</th>
+            <th>Departure</th>
+            <th>Status</th>
+            <th>Occupancy</th>
+            <th>Bus Type</th>
+          </tr>
+        </thead>
+        <tbody id="depTableBody">
+          <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3)">
+            <div class="loading-spinner"></div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ── Routes ────────────────────────────────────────────────── -->
+<section id="routes">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="section-tag">Route Management</div>
+        <h2 class="section-title">Popular Routes</h2>
+        <p class="section-sub">Manage, monitor, and optimise Delhi's extensive bus network routes.</p>
+      </div>
+      <button id="btnAddRoute" class="btn-add">+ Add New Route</button>
+    </div>
+
+    <div id="routesGrid" class="routes-grid">
+      <div style="grid-column:1/-1;text-align:center;padding:40px">
+        <div class="loading-spinner"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Schedule ───────────────────────────────────────────────── -->
+<section id="schedule">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="section-tag">Timetable Management</div>
+        <h2 class="section-title">Bus Schedules</h2>
+        <p class="section-sub">Comprehensive departure and arrival timetables for all routes.</p>
+      </div>
+    </div>
+
+    <div class="schedule-wrap">
+      <!-- Route Selector -->
+      <div class="schedule-selector">
+        <div class="schedule-selector-head">🗂 Select Route</div>
+        <div id="scheduleRouteList"></div>
+      </div>
+
+      <!-- Schedule Panel -->
+      <div class="schedule-panel">
+        <div class="schedule-panel-head">
+          <div class="schedule-panel-title" id="schedulePanelTitle">Route 423 — Kashmere Gate → AIIMS</div>
+          <div class="schedule-panel-sub" id="schedulePanelSub">Frequency: Every 8–12 minutes during peak hours</div>
+        </div>
+
+        <div class="schedule-tabs">
+          <div class="schedule-tab active" data-day="weekdays">Weekdays</div>
+          <div class="schedule-tab" data-day="weekends">Weekends</div>
+        </div>
+
+        <div class="schedule-grid-wrap">
+          <div class="schedule-col">
+            <div class="schedule-col-title">🌅 Towards Destination (Outbound)</div>
+            <div id="schedSouthbound"></div>
+          </div>
+          <div class="schedule-col">
+            <div class="schedule-col-title">🌇 Towards Origin (Return)</div>
+            <div id="schedNorthbound"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Fleet ──────────────────────────────────────────────────── -->
+<section id="fleet">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="section-tag">Fleet Management</div>
+        <h2 class="section-title">Bus Fleet Overview</h2>
+        <p class="section-sub">Complete inventory and operational status of DTC's diverse fleet.</p>
+      </div>
+    </div>
+
+    <!-- Fleet Summary Cards -->
+    <div id="fleetSummary" class="fleet-summary"></div>
+
+    <!-- Bus Table -->
+    <div class="fleet-table-wrap">
+      <div class="fleet-table-header">
+        <div class="fleet-table-title">All Vehicles</div>
+        <div class="search-input-wrap">
+          <input id="busSearch" type="text" placeholder="Search by reg, depot, type...">
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="bus-table">
+          <thead>
+            <tr>
+              <th>Reg. No.</th>
+              <th>Type</th>
+              <th>Model</th>
+              <th>Depot</th>
+              <th>Status</th>
+              <th>Fuel</th>
+              <th>Last Service</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="busTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Analytics ─────────────────────────────────────────────── -->
+<section id="analytics">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="section-tag">Performance Dashboard</div>
+        <h2 class="section-title">Analytics &amp; Insights</h2>
+        <p class="section-sub">Key performance metrics for Delhi's public transport network.</p>
+      </div>
+    </div>
+
+    <div class="analytics-grid">
+      <!-- Bar Chart -->
+      <div class="analytics-card">
+        <div class="analytics-card-head">
+          <div class="analytics-card-title">📈 Weekly Ridership</div>
+          <div style="display:flex;gap:8px">
+            <button class="map-btn active">Week</button>
+            <button class="map-btn">Month</button>
+          </div>
+        </div>
+        <div class="analytics-card-body">
+          <canvas id="ridershipChart" height="220"></canvas>
+        </div>
+      </div>
+
+      <!-- Donut Chart -->
+      <div class="analytics-card">
+        <div class="analytics-card-head">
+          <div class="analytics-card-title">🚌 Fleet by Type</div>
+        </div>
+        <div class="analytics-card-body">
+          <div class="donut-wrap">
+            <canvas id="donutChart" width="140" height="140" style="flex-shrink:0"></canvas>
+            <div class="donut-legend" id="donutLegend"></div>
+          </div>
+
+          <!-- Mini stats -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+            <div style="text-align:center">
+              <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--green)">87.4%</div>
+              <div style="font-size:12px;color:var(--text3)">On-Time Rate</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--primary)">2,341</div>
+              <div style="font-size:12px;color:var(--text3)">Drivers On Duty</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Alerts ─────────────────────────────────────────────────── -->
+<section id="alerts-section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="section-tag">Service Operations</div>
+        <h2 class="section-title">Alerts &amp; Quick Actions</h2>
+      </div>
+      <button id="btnNewAlert" class="btn-add">+ New Alert</button>
+    </div>
+
+    <div class="alerts-layout">
+      <!-- Active Alerts -->
+      <div>
+        <div style="font-family:var(--font-head);font-size:16px;font-weight:700;margin-bottom:14px">
+          🔔 Active Service Alerts
+        </div>
+        <div id="alertsList"></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <div class="qa-head">⚡ Quick Actions</div>
+        <div class="qa-grid">
+          <div class="qa-item" onclick="document.getElementById('btnAddRoute').click()">
+            <div class="qa-icon">🗺</div>
+            <div class="qa-label">Add New Route</div>
+          </div>
+          <div class="qa-item" onclick="document.querySelector('#schedule')?.scrollIntoView({behavior:'scroll'})">
+            <div class="qa-icon">📅</div>
+            <div class="qa-label">Update Schedule</div>
+          </div>
+          <div class="qa-item" onclick="showToast('Fleet deployment panel — Coming soon','info')">
+            <div class="qa-icon">🚌</div>
+            <div class="qa-label">Deploy Fleet</div>
+          </div>
+          <div class="qa-item" onclick="showToast('Emergency protocol activated 🚨','error')">
+            <div class="qa-icon">🚨</div>
+            <div class="qa-label">Emergency Protocol</div>
+          </div>
+          <div class="qa-item" onclick="showToast('Generating report...','info')">
+            <div class="qa-icon">📊</div>
+            <div class="qa-label">Download Report</div>
+          </div>
+          <div class="qa-item" onclick="document.getElementById('btnNewAlert').click()">
+            <div class="qa-icon">📢</div>
+            <div class="qa-label">Broadcast Message</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ──────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="nav-brand" style="margin-bottom:0">
+          <div class="nav-logo">DTC</div>
+          <div class="nav-title">
+            <strong>Delhi Transport Corporation</strong>
+            <span>Government of NCT of Delhi</span>
+          </div>
+        </div>
+        <p>Providing safe, affordable, and efficient public transport services to the citizens of Delhi since 1948. Connecting 726 routes across the National Capital Territory.</p>
+        <div class="footer-social">
+          <div class="social-btn">𝕏</div>
+          <div class="social-btn">f</div>
+          <div class="social-btn">▶</div>
+          <div class="social-btn">📱</div>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="#departures">Live Departures</a></li>
+          <li><a href="#routes">Route Map</a></li>
+          <li><a href="#schedule">Timetables</a></li>
+          <li><a href="#fleet">Fleet Status</a></li>
+          <li><a href="#">Lost &amp; Found</a></li>
+          <li><a href="#">Pass / Concession</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Administration</h4>
+        <ul>
+          <li><a href="#">Driver Portal</a></li>
+          <li><a href="#">Staff Login</a></li>
+          <li><a href="#">Depot Management</a></li>
+          <li><a href="#">Maintenance Records</a></li>
+          <li><a href="#">Incident Reports</a></li>
+          <li><a href="#">Payroll</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contact &amp; Help</h4>
+        <ul>
+          <li><a href="tel:01123370000">📞 011-23370000</a></li>
+          <li><a href="mailto:info@dtc.nic.in">✉️ info@dtc.nic.in</a></li>
+          <li><a href="#">🏢 I.P. Estate, New Delhi</a></li>
+          <li><a href="#">Helpline: 1800-11-0093</a></li>
+          <li><a href="#">RTI Information</a></li>
+          <li><a href="#">Grievances</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© 2024 Delhi Transport Corporation, Govt. of NCT of Delhi. All rights reserved.</span>
+      <span style="color:var(--primary);font-family:var(--font-mono);font-size:11px">GOV.IN</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ── Admin Login Modal ────────────────────────────────────── -->
+<div id="adminModalOverlay" class="modal-overlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title">Admin Login</div>
+      <button class="modal-close" data-modal="adminModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="admin-logo">
+        <div class="nav-logo" style="width:56px;height:56px;font-size:18px;margin:0 auto 10px">DTC</div>
+        <p>Secure Administrator Access<br>
+          <span style="font-size:11px;color:var(--text3);font-family:var(--font-mono)">demo: admin / dtc2024</span>
+        </p>
+      </div>
+      <div class="form-row">
+        <label>Username</label>
+        <input id="adminUser" type="text" placeholder="Enter username" value="admin">
+      </div>
+      <div class="form-row">
+        <label>Password</label>
+        <input id="adminPass" type="password" placeholder="Enter password" value="dtc2024">
+      </div>
+      <button id="btnAdminLogin" class="btn-login">🔐 Sign In</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Route CRUD Modal ─────────────────────────────────────── -->
+<div id="routeModalOverlay" class="modal-overlay">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div class="modal-title" id="routeModalTitle">Add New Route</div>
+      <button class="modal-close" data-modal="routeModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="routeForm"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Alert Modal ─────────────────────────────────────────── -->
+<div id="alertModalOverlay" class="modal-overlay">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title">Post New Alert</div>
+      <button class="modal-close" data-modal="alertModal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="alertForm"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast Container ─────────────────────────────────────── -->
+<div id="toastWrap" class="toast-wrap"></div>
+
+<!-- ── Datalist for stops ──────────────────────────────────── -->
+<datalist id="stopList">
+  <option value="Kashmere Gate ISBT">
+  <option value="Connaught Place">
+  <option value="AIIMS">
+  <option value="Anand Vihar ISBT">
+  <option value="Dwarka Sector 21">
+  <option value="Saket">
+  <option value="Rohini Sector 3">
+  <option value="Nehru Place">
+  <option value="Sarai Kale Khan ISBT">
+  <option value="Hauz Khas">
+  <option value="Lajpat Nagar">
+  <option value="Delhi Gate">
+  <option value="Noida Sector 15">
+  <option value="Pitampura">
+  <option value="Badarpur Border">
+</datalist>
+
+<!-- ── Scripts ────────────────────────────────────────────── -->
+<script src="db.js"></script>
+<script src="app.js"></script>
+<script>
+  // Set today's date in search
+  document.getElementById('searchDate').valueAsDate = new Date();
+</script>
+</body>
+</html>
