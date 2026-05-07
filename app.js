@@ -19,6 +19,7 @@ const state = {
 document.addEventListener('DOMContentLoaded', () => {
   initNavScroll();
   initCounters();
+  initDriverPanel();
   initDepartures();
   initMap();
   initRoutes();
@@ -90,6 +91,88 @@ function animateCount(el, start, end, duration) {
     if (progress < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
+}
+
+
+
+// ─── Driver Panel ─────────────────────────────────────────────
+function initDriverPanel(){
+
+  const busSelect = document.getElementById('busSelect');
+  const driverName = document.getElementById('assignedDriver');
+  const editBtn = document.getElementById('editDriverBtn');
+
+  if(!busSelect) return;
+
+  const buses = db.findAll('buses');
+  const drivers = db.findAll('drivers');
+
+  busSelect.innerHTML = buses.map(bus => {
+    return `
+      <option value="${bus.id}">
+        ${bus.regNo}
+      </option>
+    `;
+  }).join('');
+
+  function updateDriverDisplay(){
+
+    const bus = db.findById('buses', busSelect.value);
+
+    if(!bus || !bus.driverId){
+      driverName.textContent = 'Not Assigned';
+      return;
+    }
+
+    const driver = db.findById('drivers', bus.driverId);
+
+    driverName.textContent = driver
+      ? driver.name
+      : 'Unknown Driver';
+  }
+
+  updateDriverDisplay();
+
+  busSelect.addEventListener('change', updateDriverDisplay);
+
+  editBtn.addEventListener('click', () => {
+
+    if(!state.isAdmin){
+      showToast('Admin access required','error');
+      return;
+    }
+
+    const driverList = drivers
+      .map(d => `${d.id} - ${d.name}`)
+      .join('\n');
+
+    const selectedDriver = prompt(
+      `Assign Driver to Bus\n\n${driverList}\n\nEnter Driver ID:`
+    );
+
+    if(!selectedDriver) return;
+
+    const exists = drivers.find(
+      d => d.id === selectedDriver
+    );
+
+    if(!exists){
+      showToast('Invalid Driver ID','error');
+      return;
+    }
+
+    db.update('buses', busSelect.value, {
+      driverId: selectedDriver
+    });
+
+    updateDriverDisplay();
+
+    showToast('Driver assigned successfully','success');
+  });
+
+  db.on('buses', () => {
+    updateDriverDisplay();
+  });
 }
 
 // ─── Live Clock ────────────────────────────────────────────────────

@@ -145,6 +145,7 @@ class DTCDB {
       this.insert('buses', {
         id: `B${String(i).padStart(3,'0')}`,
         regNo: `DL-1P-${1000 + i}`,
+        driverId: `D${String((i % 18) + 1).padStart(3,'0')}`,
         type,
         model: type === 'Electric EV' ? 'Olectra K7' : type === 'Low Floor AC' ? 'Tata Starbus AC' : type === 'Express' ? 'Volvo 9400' : 'Ashok Leyland Viking',
         capacity: type === 'Express' ? 45 : type === 'Low Floor AC' ? 55 : 65,
