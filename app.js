@@ -98,16 +98,24 @@ function animateCount(el, start, end, duration) {
 // ─── Driver Panel ─────────────────────────────────────────────
 function initDriverPanel(){
 
-  const busSelect = document.getElementById('busSelect');
-  const driverName = document.getElementById('assignedDriver');
-  const editBtn = document.getElementById('editDriverBtn');
+  const panels = [
+    {
+      busSelect: document.getElementById('busSelect'),
+      driverName: document.getElementById('assignedDriver'),
+      editBtn: document.getElementById('editDriverBtn')
+    },
+    {
+      busSelect: document.getElementById('mobileBusSelect'),
+      driverName: document.getElementById('mobileAssignedDriver'),
+      editBtn: document.getElementById('mobileEditDriverBtn')
+    }
+  ].filter(panel => panel.busSelect && panel.driverName && panel.editBtn);
 
-  if(!busSelect) return;
+  if(!panels.length) return;
 
   const buses = db.findAll('buses');
   const drivers = db.findAll('drivers');
-
-  busSelect.innerHTML = buses.map(bus => {
+  const busOptions = buses.map(bus => {
     return `
       <option value="${bus.id}">
         ${bus.regNo}
@@ -115,64 +123,74 @@ function initDriverPanel(){
     `;
   }).join('');
 
-  function updateDriverDisplay(){
+  panels.forEach(panel => {
+    panel.busSelect.innerHTML = busOptions;
+  });
 
-    const bus = db.findById('buses', busSelect.value);
+  function updateDriverDisplay(panel){
+
+    const bus = db.findById('buses', panel.busSelect.value);
 
     if(!bus || !bus.driverId){
-      driverName.textContent = 'Not Assigned';
+      panel.driverName.textContent = 'Not Assigned';
       return;
     }
 
     const driver = db.findById('drivers', bus.driverId);
 
-    driverName.textContent = driver
+    panel.driverName.textContent = driver
       ? driver.name
       : 'Unknown Driver';
   }
 
-  updateDriverDisplay();
+  function updateAllDriverDisplays(){
+    panels.forEach(updateDriverDisplay);
+  }
 
-  busSelect.addEventListener('change', updateDriverDisplay);
+  updateAllDriverDisplays();
 
-  editBtn.addEventListener('click', () => {
+  panels.forEach(panel => {
+    panel.busSelect.addEventListener('change', () => updateDriverDisplay(panel));
 
-    if(!state.isAdmin){
-      showToast('Admin access required','error');
-      return;
-    }
+    panel.editBtn.addEventListener('click', () => {
 
-    const driverList = drivers
-      .map(d => `${d.id} - ${d.name}`)
-      .join('\n');
+      if(!state.isAdmin){
+        showToast('Admin access required','error');
+        return;
+      }
 
-    const selectedDriver = prompt(
-      `Assign Driver to Bus\n\n${driverList}\n\nEnter Driver ID:`
-    );
+      const driverList = drivers
+        .map(d => `${d.id} - ${d.name}`)
+        .join('\n');
 
-    if(!selectedDriver) return;
+      const selectedDriver = prompt(
+        `Assign Driver to Bus\n\n${driverList}\n\nEnter Driver ID:`
+      );
 
-    const driverId = selectedDriver.trim().split(/\s+/)[0].toUpperCase();
-    const exists = drivers.find(
-      d => d.id.toUpperCase() === driverId
-    );
+      if(!selectedDriver) return;
 
-    if(!exists){
-      showToast('Invalid Driver ID','error');
-      return;
-    }
+      const driverId = selectedDriver.trim().split(/\s+/)[0].toUpperCase();
+      const exists = drivers.find(
+        d => d.id.toUpperCase() === driverId
+      );
 
-    db.update('buses', busSelect.value, {
-      driverId: exists.id
+      if(!exists){
+        showToast('Invalid Driver ID','error');
+        return;
+      }
+
+      db.update('buses', panel.busSelect.value, {
+        driverId: exists.id
+      });
+
+      updateAllDriverDisplays();
+
+      showToast('Driver assigned successfully','success');
     });
-
-    updateDriverDisplay();
-
-    showToast('Driver assigned successfully','success');
   });
 
   db.on('buses', () => {
-    updateDriverDisplay();
+    updateAllDriverDisplays();
   });
 }
 

@@ -133,6 +133,8 @@ section { padding: 80px 0; }
 .hamburger span { width: 22px; height: 2px; background: var(--text2); border-radius: 2px; transition: var(--transition); }
 
 /* ── Driver Panel ───────────────────────────────────────────── */
+.mobile-driver-panel-item { display: none; }
+
 .driver-panel{
   display:flex;
   align-items:center;
@@ -1034,6 +1036,40 @@ footer {
   }
   .nav-links.open { display: flex; }
   .nav-links a { padding: 12px 10px; border-radius: 8px; font-size: 14px; }
+  .mobile-driver-panel-item { display: block; padding: 12px 0 2px; }
+  .mobile-driver-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 12px;
+    border-radius: 10px;
+  }
+  .mobile-driver-panel .driver-select {
+    min-width: 0;
+    width: 100%;
+  }
+  .mobile-driver-panel .driver-info {
+    grid-column: 1 / -1;
+    justify-content: space-between;
+    min-width: 0;
+  }
+  .mobile-driver-panel .driver-info span,
+  .mobile-driver-panel .btn-driver-edit {
+    font-size: 0;
+  }
+  .mobile-driver-panel .driver-info span::after {
+    content: "Driver:";
+    font-size: 13px;
+  }
+  .mobile-driver-panel .driver-info strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mobile-driver-panel .btn-driver-edit::after {
+    content: "Assign";
+    font-size: 12px;
+  }
   .admin-bar.visible { padding: 8px 16px; gap: 12px; }
   .ticker-wrap { margin-top: 64px !important; }
 
