@@ -457,17 +457,17 @@ function renderRoutes() {
 function openRouteModal(id = null) {
   if (!state.isAdmin) { showToast('Please login as admin to manage routes','error'); return; }
   state.editingRouteId = id;
-  const modal = document.getElementById('routeModal');
-  if (!modal) return;
+  const routeForm = document.getElementById('routeForm');
+  const routeTitle = document.getElementById('routeModalTitle');
+  if (!routeForm || !routeTitle) return;
 
   const stops = db.findAll('stops');
-  const stopOpts = stops.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
 
   let route = { number:'', name:'', type:'Standard CNG', frequency:10, distance:'', duration:'', fare:'', status:'active', from:'', to:'' };
   if (id) route = { ...route, ...db.findById('routes', id) };
 
-  document.getElementById('routeModalTitle').textContent = id ? 'Edit Route' : 'Add New Route';
-  document.getElementById('routeForm').innerHTML = `
+  routeTitle.textContent = id ? 'Edit Route' : 'Add New Route';
+  routeForm.innerHTML = `
     <div class="form-2col">
       <div class="form-row">
         <label>Route Number</label>
@@ -531,39 +531,58 @@ function openRouteModal(id = null) {
 }
 
 function saveRoute() {
+  if (!state.isAdmin) { showToast('Please login as admin to manage routes','error'); return; }
+
+  const from = document.getElementById('rf-from')?.value;
+  const to = document.getElementById('rf-to')?.value;
   const data = {
     number:   document.getElementById('rf-number')?.value.trim(),
     name:     document.getElementById('rf-name')?.value.trim(),
     type:     document.getElementById('rf-type')?.value,
-    from:     document.getElementById('rf-from')?.value,
-    to:       document.getElementById('rf-to')?.value,
+    from,
+    to,
     frequency:+document.getElementById('rf-freq')?.value,
     distance: +document.getElementById('rf-dist')?.value,
     duration: +document.getElementById('rf-dur')?.value,
     fare:     +document.getElementById('rf-fare')?.value,
     status:   document.getElementById('rf-status')?.value,
-    stops:    [],
+    stops:    [from, to].filter(Boolean),
   };
 
   if (!data.number || !data.name) { showToast('Route number and name are required','error'); return; }
+  if (!data.from || !data.to) { showToast('Please select both stops','error'); return; }
+  if (data.from === data.to) { showToast('From and To stops must be different','error'); return; }
+
+  const routeId = 'R' + data.number;
+  const duplicateRoute = db.findAll('routes').find(r =>
+    r.number === data.number && r.id !== state.editingRouteId
+  );
+  if (duplicateRoute || (!state.editingRouteId && db.findById('routes', routeId))) {
+    showToast('Route number already exists','error');
+    return;
+  }
 
   if (state.editingRouteId) {
     db.update('routes', state.editingRouteId, data);
     showToast('Route updated successfully ✓','success');
   } else {
-    db.insert('routes', { id: 'R'+data.number, ...data });
+    db.insert('routes', { id: routeId, ...data });
     showToast('Route added successfully ✓','success');
   }
 
   closeModal('routeModal');
-  renderRoutes();
+  refreshEditableViews();
 }
 
 function deleteRoute(id) {
+  if (!state.isAdmin) { showToast('Please login as admin to manage routes','error'); return; }
   if (!confirm('Delete this route? This cannot be undone.')) return;
   db.delete('routes', id);
+  if (state.scheduleRoute === id) {
+    state.scheduleRoute = db.findAll('routes')[0]?.id || null;
+  }
   showToast('Route deleted','info');
-  renderRoutes();
+  refreshEditableViews();
 }
 
 // ─── Schedule ──────────────────────────────────────────────────────
@@ -603,7 +622,17 @@ function selectScheduleRoute(id) {
 
 function renderSchedulePanel(routeId) {
   const route = db.findById('routes', routeId);
-  if (!route) return;
+  if (!route) {
+    const titleEl = document.getElementById('schedulePanelTitle');
+    const subEl = document.getElementById('schedulePanelSub');
+    const southbound = document.getElementById('schedSouthbound');
+    const northbound = document.getElementById('schedNorthbound');
+    if (titleEl) titleEl.textContent = 'No route selected';
+    if (subEl) subEl.textContent = 'Add a route to generate schedule slots.';
+    if (southbound) southbound.innerHTML = '';
+    if (northbound) northbound.innerHTML = '';
+    return;
+  }
 
   const titleEl = document.getElementById('schedulePanelTitle');
   const subEl   = document.getElementById('schedulePanelSub');
@@ -655,7 +684,8 @@ function initFleet() {
   renderBusTable('');
 
   document.getElementById('busSearch')?.addEventListener('input', e => {
-    renderBusTable(e.target.value);
+    state.fleetFilter = e.target.value;
+    renderBusTable(state.fleetFilter);
   });
 }
 
@@ -734,6 +764,7 @@ function renderBusTable(filter) {
 }
 
 function toggleBusStatus(id) {
+  if (!state.isAdmin) { showToast('Admin access required','error'); return; }
   const bus = db.findById('buses', id);
   if (!bus) return;
   const newStatus = bus.status === 'operational' ? 'maintenance' : 'operational';
@@ -893,6 +924,7 @@ function renderAlerts() {
 }
 
 function dismissAlert(id) {
+  if (!state.isAdmin) { showToast('Admin access required','error'); return; }
   db.update('alerts', id, { active: false });
   const el = document.getElementById(`alert-${id}`);
   if (el) { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; setTimeout(() => el.remove(), 300); }
@@ -900,7 +932,11 @@ function dismissAlert(id) {
 }
 
 function openAlertModal() {
-  document.getElementById('alertForm').innerHTML = `
+  if (!state.isAdmin) { showToast('Admin access required','error'); return; }
+  const alertForm = document.getElementById('alertForm');
+  if (!alertForm) return;
+
+  alertForm.innerHTML = `
     <div class="form-row">
       <label>Alert Type</label>
       <select id="al-type" class="form-input">
@@ -938,13 +974,18 @@ function openAlertModal() {
 }
 
 function saveAlert() {
+  if (!state.isAdmin) { showToast('Admin access required','error'); return; }
+
   const type = document.getElementById('al-type')?.value;
+  const title = document.getElementById('al-title')?.value.trim();
+  const message = document.getElementById('al-msg')?.value.trim();
+  if (!title || !message) { showToast('Alert title and message are required','error'); return; }
   const icons = { info: 'ℹ️', warning: '⚠️', danger: '🚨', success: '✅' };
   db.insert('alerts', {
     type,
     icon: document.getElementById('al-icon')?.value || icons[type],
-    title: document.getElementById('al-title')?.value,
-    message: document.getElementById('al-msg')?.value,
+    title,
+    message,
     severity: document.getElementById('al-sev')?.value,
     active: true,
     routeId: null,
@@ -1010,6 +1051,8 @@ function initModals() {
     openModal('adminModal');
   });
   document.getElementById('btnAdminLogin')?.addEventListener('click', handleAdminLogin);
+  document.getElementById('adminUser')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleAdminLogin(); });
+  document.getElementById('adminPass')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleAdminLogin(); });
 
   // Close buttons
   document.querySelectorAll('.modal-close[data-modal]').forEach(btn => {
@@ -1019,7 +1062,7 @@ function initModals() {
   // Click outside to close
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', e => {
-      if (e.target === overlay) closeModal(overlay.id.replace('Modal','').replace('Overlay',''));
+      if (e.target === overlay) closeModal(overlay.id.replace(/Overlay$/, ''));
     });
   });
 }
@@ -1033,6 +1076,15 @@ function closeModal(id) {
   if (overlay) { overlay.classList.remove('open'); document.body.style.overflow = ''; }
 }
 
+function refreshEditableViews() {
+  renderRoutes();
+  renderScheduleList();
+  renderSchedulePanel(state.scheduleRoute);
+  renderFleetSummary();
+  renderBusTable(state.fleetFilter || '');
+  renderAlerts();
+}
+
 function handleAdminLogin() {
   const user = document.getElementById('adminUser')?.value;
   const pass = document.getElementById('adminPass')?.value;
@@ -1043,9 +1095,7 @@ function handleAdminLogin() {
     document.querySelector('.btn-admin').textContent = '🔓 Admin';
     document.getElementById('adminBar').classList.add('visible');
     showToast('Welcome, Administrator ✓','success');
-    renderRoutes();
-    renderBusTable('');
-    renderAlerts();
+    refreshEditableViews();
   } else {
     showToast('Invalid credentials. Use admin / dtc2024','error');
     const input = document.getElementById('adminPass');
@@ -1058,7 +1108,7 @@ function logoutAdmin() {
   document.querySelector('.btn-admin').textContent = '🔐 Admin Login';
   document.getElementById('adminBar').classList.remove('visible');
   showToast('Logged out','info');
-  renderRoutes(); renderBusTable(''); renderAlerts();
+  refreshEditableViews();
 }
 
 // ─── Toast Notifications ──────────────────────────────────────────
