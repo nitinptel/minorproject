@@ -29,6 +29,7 @@
     <ul class="nav-links">
       <li><a href="#hero" class="active">🏠 Home</a></li>
       <li><a href="#departures">🚌 Departures</a></li>
+      <li><a href="#ticket">Ticket</a></li>
       <li><a href="#routes">🗺 Routes</a></li>
       <li><a href="#schedule">🕐 Schedule</a></li>
       <li><a href="#fleet">🚍 Fleet</a></li>
@@ -326,6 +327,71 @@
   </div>
 </section>
 
+<!-- ── Ticket Purchase ───────────────────────────────────────── -->
+<section id="ticket">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <div class="section-tag">Online Booking</div>
+        <h2 class="section-title">Purchase Bus Ticket</h2>
+        <p class="section-sub">Select a route, passenger count, and pay securely through any UPI app.</p>
+      </div>
+    </div>
+
+    <div class="ticket-layout">
+      <div class="ticket-panel">
+        <div class="ticket-panel-title">Ticket Details</div>
+        <div class="ticket-form-grid">
+          <div class="form-row">
+            <label>Route</label>
+            <select id="ticketRoute" class="form-input"></select>
+          </div>
+          <div class="form-row">
+            <label>Passengers</label>
+            <input id="ticketPassengers" type="number" min="1" max="10" value="1">
+          </div>
+          <div class="form-row">
+            <label>Passenger Name</label>
+            <input id="ticketName" placeholder="Enter passenger name">
+          </div>
+          <div class="form-row">
+            <label>Mobile Number</label>
+            <input id="ticketPhone" placeholder="10 digit mobile number" inputmode="numeric">
+          </div>
+        </div>
+
+        <div class="ticket-summary">
+          <div>
+            <span>Route Fare</span>
+            <strong id="ticketFare">Rs 0</strong>
+          </div>
+          <div>
+            <span>Total Payable</span>
+            <strong id="ticketTotal">Rs 0</strong>
+          </div>
+        </div>
+
+        <div class="ticket-actions">
+          <button id="btnPayUpi" class="btn-login">Pay with UPI</button>
+          <button id="btnDownloadTicket" class="btn-outline" type="button">Generate Ticket</button>
+        </div>
+        <div id="ticketStatus" class="ticket-status"></div>
+      </div>
+
+      <div class="ticket-panel admin-fare-panel">
+        <div class="ticket-panel-head">
+          <div>
+            <div class="ticket-panel-title">Admin Fare Control</div>
+            <p>Login as admin to update fares for all routes.</p>
+          </div>
+          <button id="btnSaveFares" class="btn-add">Save Fares</button>
+        </div>
+        <div id="fareEditor" class="fare-editor"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ── Routes ────────────────────────────────────────────────── -->
 <section id="routes">
   <div class="container">
@@ -567,6 +633,7 @@
         <h4>Services</h4>
         <ul>
           <li><a href="#departures">Live Departures</a></li>
+          <li><a href="#ticket">Online Ticket</a></li>
           <li><a href="#routes">Route Map</a></li>
           <li><a href="#schedule">Timetables</a></li>
           <li><a href="#fleet">Fleet Status</a></li>

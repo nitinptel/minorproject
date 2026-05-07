@@ -11,6 +11,7 @@ const state = {
   scheduleDay: 'weekdays',
   fleetFilter: '',
   editingRouteId: null,
+  currentTicket: null,
   tickerInterval: null,
   depInterval: null,
 };
@@ -28,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAnalytics();
   initAlerts();
   initSearch();
+  initTickets();
   initModals();
   initMobileMenu();
   startLiveUpdates();
@@ -45,7 +47,7 @@ function initNavScroll() {
   });
 
   // Active link on scroll
-  const sections = ['hero','departures','routes','schedule','fleet','analytics','alerts-section'];
+  const sections = ['hero','departures','ticket','routes','schedule','fleet','analytics','alerts-section'];
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -272,6 +274,164 @@ function renderDepartures(terminal) {
 }
 
 // ─── Live Map ──────────────────────────────────────────────────────
+// Tickets
+function initTickets() {
+  renderTicketRoutes();
+  renderFareEditor();
+  updateTicketSummary();
+
+  document.getElementById('ticketRoute')?.addEventListener('change', updateTicketSummary);
+  document.getElementById('ticketPassengers')?.addEventListener('input', updateTicketSummary);
+  document.getElementById('btnPayUpi')?.addEventListener('click', payTicketWithUpi);
+  document.getElementById('btnDownloadTicket')?.addEventListener('click', generateTicket);
+  document.getElementById('btnSaveFares')?.addEventListener('click', saveAllRouteFares);
+}
+
+function renderTicketRoutes() {
+  const select = document.getElementById('ticketRoute');
+  if (!select) return;
+
+  const routes = db.findAll('routes');
+  select.innerHTML = routes.map(route =>
+    `<option value="${route.id}">Route ${route.number} - ${route.name}</option>`
+  ).join('');
+}
+
+function getTicketSelection() {
+  const routeId = document.getElementById('ticketRoute')?.value;
+  const route = db.findById('routes', routeId);
+  const passengerInput = document.getElementById('ticketPassengers');
+  const passengers = Math.max(1, Math.min(10, Number(passengerInput?.value) || 1));
+
+  if (passengerInput && String(passengers) !== passengerInput.value) {
+    passengerInput.value = passengers;
+  }
+
+  const fare = Number(route?.fare) || 0;
+  return { route, passengers, fare, total: fare * passengers };
+}
+
+function updateTicketSummary() {
+  const { fare, total } = getTicketSelection();
+  const fareEl = document.getElementById('ticketFare');
+  const totalEl = document.getElementById('ticketTotal');
+  if (fareEl) fareEl.textContent = `Rs ${fare}`;
+  if (totalEl) totalEl.textContent = `Rs ${total}`;
+}
+
+function selectTicketRoute(routeId) {
+  const select = document.getElementById('ticketRoute');
+  if (select) {
+    select.value = routeId;
+    updateTicketSummary();
+  }
+  document.getElementById('ticket')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+function payTicketWithUpi() {
+  const { route, passengers, total } = getTicketSelection();
+  const name = document.getElementById('ticketName')?.value.trim();
+  const phone = document.getElementById('ticketPhone')?.value.trim();
+
+  if (!route) { showToast('Please select a route','error'); return; }
+  if (!name) { showToast('Passenger name is required','error'); return; }
+  if (!/^\d{10}$/.test(phone || '')) { showToast('Enter a valid 10 digit mobile number','error'); return; }
+  if (total <= 0) { showToast('Ticket amount must be greater than zero','error'); return; }
+
+  const ticketId = `DTC${Date.now().toString().slice(-8)}`;
+  state.currentTicket = {
+    id: ticketId,
+    routeId: route.id,
+    routeNumber: route.number,
+    routeName: route.name,
+    passengerName: name,
+    phone,
+    passengers,
+    amount: total,
+    createdAt: new Date().toISOString()
+  };
+
+  const params = new URLSearchParams({
+    pa: 'dtc@upi',
+    pn: 'Delhi Transport Corporation',
+    am: total.toFixed(2),
+    cu: 'INR',
+    tn: `DTC Ticket ${ticketId} Route ${route.number}`
+  });
+  const upiUrl = `upi://pay?${params.toString()}`;
+  const status = document.getElementById('ticketStatus');
+  if (status) {
+    status.innerHTML = `Ticket ${ticketId} ready. Complete payment in your UPI app, then generate the ticket receipt.`;
+  }
+
+  window.location.href = upiUrl;
+  showToast('Opening UPI payment app','info');
+}
+
+function generateTicket() {
+  const ticket = state.currentTicket;
+  if (!ticket) {
+    showToast('Please pay with UPI first','error');
+    return;
+  }
+
+  const status = document.getElementById('ticketStatus');
+  if (status) {
+    status.innerHTML = `
+      <div class="ticket-receipt">
+        <div><strong>Ticket ID:</strong> ${ticket.id}</div>
+        <div><strong>Passenger:</strong> ${ticket.passengerName}</div>
+        <div><strong>Route:</strong> ${ticket.routeNumber} - ${ticket.routeName}</div>
+        <div><strong>Passengers:</strong> ${ticket.passengers}</div>
+        <div><strong>Amount:</strong> Rs ${ticket.amount}</div>
+      </div>
+    `;
+  }
+  showToast('Ticket generated','success');
+}
+
+function renderFareEditor() {
+  const editor = document.getElementById('fareEditor');
+  if (!editor) return;
+
+  const routes = db.findAll('routes');
+  editor.innerHTML = routes.map(route => `
+    <div class="fare-row">
+      <div>
+        <strong>Route ${route.number}</strong>
+        <span>${route.name}</span>
+      </div>
+      <input class="fare-input" data-route-id="${route.id}" type="number" min="0" step="1" value="${Number(route.fare) || 0}" ${state.isAdmin ? '' : 'disabled'}>
+    </div>
+  `).join('');
+
+  const saveBtn = document.getElementById('btnSaveFares');
+  if (saveBtn) saveBtn.disabled = !state.isAdmin;
+}
+
+function saveAllRouteFares() {
+  if (!state.isAdmin) { showToast('Admin access required to edit fares','error'); return; }
+
+  const inputs = document.querySelectorAll('.fare-input');
+  for (const input of inputs) {
+    const fare = Number(input.value);
+    if (!Number.isFinite(fare) || fare < 0) {
+      showToast('Fares must be zero or greater','error');
+      return;
+    }
+  }
+
+  inputs.forEach(input => {
+    db.update('routes', input.dataset.routeId, { fare: Number(input.value) });
+  });
+
+  renderTicketRoutes();
+  renderFareEditor();
+  updateTicketSummary();
+  refreshEditableViews();
+  showToast('Route fares updated','success');
+}
+
 function initMap() {
   const canvas = document.getElementById('dtcMap');
   if (!canvas) return;
@@ -1078,6 +1238,9 @@ function closeModal(id) {
 
 function refreshEditableViews() {
   renderRoutes();
+  renderTicketRoutes();
+  renderFareEditor();
+  updateTicketSummary();
   renderScheduleList();
   renderSchedulePanel(state.scheduleRoute);
   renderFleetSummary();
@@ -1166,4 +1329,5 @@ window.toggleBusStatus = toggleBusStatus;
 window.dismissAlert    = dismissAlert;
 window.saveAlert       = saveAlert;
 window.selectScheduleRoute = selectScheduleRoute;
+window.selectTicketRoute = selectTicketRoute;
 window.logoutAdmin     = logoutAdmin;
