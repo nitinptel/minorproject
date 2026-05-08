@@ -352,7 +352,7 @@ function payTicketWithUpi() {
   };
 
   const params = new URLSearchParams({
-    pa: '9302179360@ybl',
+    pa: '9302179360@fam',
     pn: 'Delhi Transport Corporation',
     am: total.toFixed(2),
     cu: 'INR',
