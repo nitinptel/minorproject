@@ -1252,7 +1252,7 @@ function handleAdminLogin() {
   const user = document.getElementById('adminUser')?.value;
   const pass = document.getElementById('adminPass')?.value;
 
-  if (user === 'admin' && pass === 'dtc2024') {
+  if (user === 'Nitin' && pass === 'Nitinpatel14@') {
     state.isAdmin = true;
     closeModal('adminModal');
     document.querySelector('.btn-admin').textContent = '🔓 Admin';
@@ -1260,7 +1260,7 @@ function handleAdminLogin() {
     showToast('Welcome, Administrator ✓','success');
     refreshEditableViews();
   } else {
-    showToast('Invalid credentials. Use admin / dtc2024','error');
+    showToast('Invalid credentials','error');
     const input = document.getElementById('adminPass');
     if (input) { input.style.borderColor = 'var(--red)'; setTimeout(() => input.style.borderColor = '', 1500); }
   }
