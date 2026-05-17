@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developers | DTC Smart Transport Project</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23FF6B00'/><text y='24' x='4' font-size='20' font-family='monospace' font-weight='bold' fill='white'>DT</text></svg>">
+</head>
+<body class="developers-page">
+
+<nav class="navbar">
+  <div class="container">
+    <a href="index.html#hero" class="nav-brand">
+      <div class="nav-logo">DTC</div>
+      <div class="nav-title">
+        <strong>Delhi Transport Corporation</strong>
+        <span>Government of NCT of Delhi</span>
+      </div>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="index.html#hero">Home</a></li>
+      <li><a href="index.html#departures">Departures</a></li>
+      <li><a href="index.html#ticket">Ticket</a></li>
+      <li><a href="index.html#routes">Routes</a></li>
+      <li><a href="index.html#schedule">Schedule</a></li>
+      <li><a href="index.html#fleet">Fleet</a></li>
+      <li><a href="index.html#analytics">Analytics</a></li>
+      <li><a href="index.html#alerts-section">Alerts</a></li>
+      <li><a href="developers.html" class="active">Developers</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<section id="developers">
+  <div class="container">
+    <div class="section-header developer-header">
+      <div>
+        <div class="section-tag">Project Team</div>
+        <h1 class="section-title">Developers Behind This Project</h1>
+        <p class="section-sub">The team that designed, managed, and built the DTC smart transport experience.</p>
+      </div>
+      <a href="index.html#hero" class="btn-secondary">Back to Home</a>
+    </div>
+
+    <div class="developer-showcase">
+      <div class="developer-stage" aria-hidden="true">
+        <div class="dev-orbit dev-orbit-one"></div>
+        <div class="dev-orbit dev-orbit-two"></div>
+        <div class="dev-core">
+          <span>DTC</span>
+          <small>Smart Transit</small>
+        </div>
+        <div class="dev-floating-card dev-card-a">Full Stack</div>
+        <div class="dev-floating-card dev-card-b">Backend</div>
+        <div class="dev-floating-card dev-card-c">UX Design</div>
+      </div>
+
+      <div class="developers-grid">
+        <article class="developer-card" style="--accent: var(--primary); --delay: 0s;">
+          <div class="developer-avatar">NP</div>
+          <div>
+            <p class="developer-role">Full Stack Developer</p>
+            <h2>Nitin Patidar</h2>
+            <span>Built the complete web experience across frontend logic, admin workflows, and live interface behavior.</span>
+          </div>
+        </article>
+
+        <article class="developer-card" style="--accent: var(--blue); --delay: .12s;">
+          <div class="developer-avatar">YI</div>
+          <div>
+            <p class="developer-role">Project Manager</p>
+            <h2>Yash Ingle</h2>
+            <span>Led planning, team coordination, scope tracking, and project delivery decisions.</span>
+          </div>
+        </article>
+
+        <article class="developer-card" style="--accent: var(--green); --delay: .24s;">
+          <div class="developer-avatar">MT</div>
+          <div>
+            <p class="developer-role">Backend Developer</p>
+            <h2>Moksh Tawar</h2>
+            <span>Worked on data structure, backend-oriented features, and reliable transport system logic.</span>
+          </div>
+        </article>
+
+        <article class="developer-card" style="--accent: var(--purple); --delay: .36s;">
+          <div class="developer-avatar">KG</div>
+          <div>
+            <p class="developer-role">UI and UX Designer</p>
+            <h2>Krishika Garg</h2>
+            <span>Designed the user journey, visual polish, and clear interaction flow for passengers and admins.</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2024 Delhi Transport Corporation, Govt. of NCT of Delhi. All rights reserved.</span>
+      <span style="color:var(--primary);font-family:var(--font-mono);font-size:11px">PROJECT TEAM</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.querySelector('.hamburger')?.addEventListener('click', () => {
+    const links = document.querySelector('.nav-links');
+    const isOpen = links?.classList.toggle('open');
+    document.querySelector('.hamburger')?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', () => {
+      document.querySelector('.nav-links')?.classList.remove('open');
+      document.querySelector('.hamburger')?.setAttribute('aria-expanded', 'false');
+    });
+  });
+</script>
+</body>
+</html>
